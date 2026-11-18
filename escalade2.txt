@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiche Séance Escalade - Calcul & Envoi</title>
+    <style>
+        /* =========================================================================
+           STYLES CSS AUTONOMES (ZÉRO DÉPENDANCE EXTERNE)
+           ========================================================================= */
+        :root {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-subtle: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-light: #94a3b8;
+            --border-color: #cbd5e1;
+            --border-light: #e2e8f0;
+            --primary: #0369a1;
+            --primary-dark: #0c4a6e;
+            --primary-light: #e0f2fe;
+            --accent: #f97316;
+            --accent-hover: #ea580c;
+            --success: #059669;
+            --success-bg: #ecfdf5;
+            --success-border: #a7f3d0;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --danger-border: #fecaca;
+            --warning: #d97706;
+            --warning-bg: #fffbeb;
+            --warning-border: #fde68a;
+            --radius-lg: 14px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+            --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+            --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.1);
+            --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.22);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* En-tête collant */
+        header {
+            background: linear-gradient(135deg, #0f172a 0%, #0c4a6e 50%, #0f172a 100%);
+            color: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-inner {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 14px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            background-color: var(--accent);
+            padding: 9px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(249, 115, 22, 0.4);
+        }
+
+        .brand h1 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        .brand p {
+            font-size: 0.78rem;
+            color: #cbd5e1;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-bareme {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            padding: 8px 13px;
+            border-radius: var(--radius-md);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-bareme:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        .score-pill {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid #334155;
+            padding: 5px 12px;
+            border-radius: var(--radius-md);
+            text-align: right;
+        }
+
+        .score-pill-label {
+            display: block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+
+        .score-pill-value {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #fb923c;
+        }
+
+        /* Accordéon du barème officiel */
+        .bareme-drawer {
+            background-color: #0f172a;
+            border-top: 1px solid #334155;
+            padding: 16px;
+        }
+
+        .bareme-drawer.hidden {
+            display: none;
+        }
+
+        .bareme-inner {
+            max-width: 1024px;
+            margin: 0 auto;
+        }
+
+        .bareme-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .btn-link-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            text-decoration: underline;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .btn-link-close:hover {
+            color: #ffffff;
+        }
+
+        /* Conteneur principal */
+        main {
+            max-width: 1024px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            flex-grow: 1;
+        }
+
+        /* Cartes d'étape */
+        .card {
+            background-color: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 13px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .card-header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-badge {
+            background-color: var(--accent);
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 0.03em;
+        }
+
+        .step-badge.blue { background-color: var(--primary); }
+        .step-badge.red { background-color: var(--danger); }
+        .step-badge.green { background-color: var(--success); }
+
+        .card-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .card-header-right {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #fb923c;
+        }
+
+        .card-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* Lignes de contrôle (Question + Select) */
+        .control-box {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            background-color: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+        }
+
+        .control-box.blue-tint {
+            background-color: #f0f9ff;
+            border-color: #bae6fd;
+        }
+
+        .control-box.green-tint {
+            background-color: var(--success-bg);
+            border-color: var(--success-border);
+        }
+
+        .control-box.red-tint {
+            background-color: var(--danger-bg);
+            border-color: var(--danger-border);
+        }
+
+        .control-label {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: var(--text-main);
+        }
+
+        .control-sublabel {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        select, input[type="text"] {
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 9px 12px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        select {
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 200px;
+        }
+
+        select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.18);
+        }
+
+        select.filled {
+            border-color: var(--primary);
+            background-color: #f0f9ff;
+        }
+
+        /* Grille des prénoms */
+        .climbers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Tableaux responsives */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 0.88rem;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-light);
+            border-right: 1px solid var(--border-light);
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        thead th {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        thead.dark th {
+            background-color: #1e293b;
+            color: #ffffff;
+            border-color: #334155;
+        }
+
+        thead.dark tr.sub-header th {
+            background-color: #334155;
+            font-size: 0.78rem;
+            color: #e2e8f0;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            background-color: inherit;
+        }
+
+        tbody tr {
+            background-color: #ffffff;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .total-merged-cell {
+            background-color: #f0f9ff !important;
+            border-left: 2px solid #bae6fd;
+            vertical-align: middle;
+        }
+
+        .total-big-num {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+
+        .bonus-pill {
+            display: inline-block;
+            margin-top: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        /* Tableau barème sombre */
+        table.bareme-table th, table.bareme-table td {
+            border-color: #334155;
+            padding: 7px 8px;
+            font-size: 0.78rem;
+        }
+
+        table.bareme-table thead th {
+            background-color: #1e293b;
+            color: #f8fafc;
+        }
+
+        table.bareme-table tbody tr {
+            background-color: #0f172a;
+            color: #cbd5e1;
+        }
+
+        table.bareme-table tbody tr.top-row {
+            background-color: #1e293b;
+            color: #fb923c;
+            font-weight: 700;
+        }
+
+        /* Badges d'état & Zone d'envoi */
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 11px;
+            border-radius: 999px;
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #fde68a;
+            border: 1px solid rgba(251, 191, 36, 0.4);
+        }
+
+        .status-badge.complete {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #a7f3d0;
+            border-color: rgba(52, 211, 153, 0.4);
+        }
+
+        .notice-box {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            color: #92400e;
+            padding: 12px 15px;
+            border-radius: var(--radius-md);
+            font-size: 0.84rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .send-panel {
+            background-color: var(--bg-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .send-panel.ready-complete {
+            background-color: var(--success-bg);
+            border-color: var(--success-border);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: transform 0.1s, background-color 0.15s, box-shadow 0.15s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #ffffff;
+            box-shadow: 0 3px 10px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-blue {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-blue:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-gmail {
+            background-color: #dc2626;
+            color: #ffffff;
+        }
+
+        .btn-gmail:hover {
+            background-color: #b91c1c;
+        }
+
+        .btn-secondary {
+            background-color: #ffffff;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f1f5f9;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: #ffffff;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        /* Modale (Envoi Mail & Confirmation Réinitialisation) */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 50;
+        }
+
+        .modal-card {
+            background-color: #ffffff;
+            border-radius: var(--radius-lg);
+            max-width: 640px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .modal-card.small {
+            max-width: 400px;
+        }
+
+        .modal-header {
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h3 {
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.4rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #ffffff;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .email-preview-pre {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.78rem;
+            white-space: pre-wrap;
+            color: #1e293b;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .modal-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+            gap: 10px;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 12px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.86rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid #334155;
+            z-index: 60;
+            transition: opacity 0.25s, transform 0.25s;
+        }
+
+        .toast.hidden-toast {
+            opacity: 0;
+            transform: translateY(16px);
+            pointer-events: none;
+        }
+
+        .reset-footer {
+            text-align: center;
+            padding-top: 8px;
+        }
+
+        .btn-reset-link {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            text-decoration: underline;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .btn-reset-link:hover {
+            color: var(--danger);
+        }
+
+        @media (max-width: 640px) {
+            select {
+                width: 100%;
+            }
+            .btn-group, .btn-group .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =========================================================================
+         EN-TÊTE PRINCIPAL & BARÈME REPLIABLE
+         ========================================================================= -->
+    <header>
+        <div class="header-inner">
+            <div class="brand">
+                <div class="brand-icon" aria-hidden="true">
+                    <svg width="24" height="24" fill="none" stroke="#ffffff" stroke-width="2.3" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 20l6.5-11 4.5 7 3.5-5L21 20H3z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.5 9l2.5 3 2-2"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Fiche Séance Escalade</h1>
+                    <p>Calculateur de points par cordée &amp; bilan de sécurité</p>
+                </div>
+            </div>
+
+            <div class="header-controls">
+                <button type="button" id="toggleBaremeBtn" class="btn-bareme">
+                    <span>Barème des 13 voies</span>
+                    <span id="baremeArrow">?</span>
+                </button>
+                <div class="score-pill">
+                    <span class="score-pill-label">Total Séance</span>
+                    <span class="score-pill-value" id="headerTotalScore">0 pt</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accordéon du barème officiel -->
+        <div id="baremeDrawer" class="bareme-drawer hidden">
+            <div class="bareme-inner">
+                <div class="bareme-header">
+                    <span>Barème officiel des voies d'escalade (points par hauteur atteinte)</span>
+                    <button type="button" id="closeBaremeBtn" class="btn-link-close">Fermer</button>
+                </div>
+                <div class="table-wrapper" style="border-color: #334155;">
+                    <table class="bareme-table">
+                        <thead>
+                            <tr>
+                                <th class="text-left sticky-col" style="background-color:#1e293b;">Hauteur</th>
+                                <th>Voie 1</th>
+                                <th>Voie 2</th>
+                                <th>Voie 3</th>
+                                <th>Voie 4</th>
+                                <th>Voie 5</th>
+                                <th>Voie 6</th>
+                                <th>Voie 7</th>
+                                <th>Voie 8</th>
+                                <th>Voie 9</th>
+                                <th>Voie 10</th>
+                                <th>Voie 11</th>
+                                <th>Voie 12</th>
+                                <th>Voie 13</th>
+                            </tr>
+                        </thead>
+                        <tbody id="baremeTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- =========================================================================
+         CONTENU PRINCIPAL
+         ========================================================================= -->
+    <main>
+
+        <!-- ÉTAPE 1 : COMPOSITION DU GROUPE -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-header-title">
+                    <span class="step-badge">ÉTAPE 1</span>
+                    <h2>Composition du groupe</h2>
+                </div>
+                <span style="font-size:0.78rem; color:#cbd5e1;">Paramétrage de la cordée</span>
+            </div>
+
+            <div class="card-body">
+                <div class="control-box blue-tint">
+                    <label for="groupSizeSelect" class="control-label">
+                        Combien de personnes compose votre groupe ?
+                    </label>
+                    <select id="groupSizeSelect">
+                        <option value="3" selected>3 personnes</option>
+                        <option value="4">4 personnes</option>
+                    </select>
+                </div>
+
+                <div class="climbers-grid">
+                    <div class="input-group">
+                        <label for="climberName0">Grimpeur 1 : Prénom à inscrire</label>
+                        <input type="text" id="climberName0" data-index="0" placeholder="Ex : Léo">
+                    </div>
+                    <div class="input-group">
+                        <label for="climberName1">Grimpeur 2 : Prénom à inscrire</label>
+                        <input type="text" id="climberName1" data-index="1" placeholder="Ex : Chloé">
+                    </div>
+                    <div class="input-group">
+                        <label for="climberName2">Grimpeur 3 : Prénom à inscrire</label>
+                        <input type="text" id="climberName2" data-index="2" placeholder="Ex : Lucas">
+                    </div>
+                    <div class="input-group hidden" id="climber4Wrapper">
+                        <label for="climberName3">Grimpeur 4 : Prénom à inscrire</label>
+                        <input type="text" id="climberName3" data-index="3" placeholder="Ex : Emma">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ÉTAPES 2, 3, 4 : LES 3 VOIES (INJECTÉES DYNAMIQUEMENT) -->
+        <div id="routesContainer" style="display:flex; flex-direction:column; gap:24px;"></div>
+
+        <!-- ÉTAPE 5 : FAUTES DE SÉCURITÉ & BILAN INTERMÉDIAIRE -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-header-title">
+                    <span class="step-badge red">ÉTAPE 5</span>
+                    <h2>Sécurité &amp; Bilan des points de la séance</h2>
+                </div>
+                <span style="font-size:0.78rem; color:#fca5a5;">-3 pts par faute</span>
+            </div>
+
+            <div class="card-body">
+                <div class="control-box red-tint">
+                    <div>
+                        <label for="safetyFaultsSelect" class="control-label">
+                            Nombre de fautes sécurité du groupe
+                        </label>
+                        <p class="control-sublabel">Chaque faute sécurité entraîne une pénalité de <strong>3 points</strong>.</p>
+                    </div>
+                    <select id="safetyFaultsSelect">
+                        <option value="0" selected>0 faute (0 pt)</option>
+                        <option value="1">1 faute (-3 pts)</option>
+                        <option value="2">2 fautes (-6 pts)</option>
+                        <option value="3">3 fautes (-9 pts)</option>
+                        <option value="4">4 fautes (-12 pts)</option>
+                        <option value="5">5 fautes (-15 pts)</option>
+                        <option value="6">6 fautes (-18 pts)</option>
+                        <option value="7">7 fautes (-21 pts)</option>
+                    </select>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Total Points 1ère Voie</th>
+                                <th>Total Points 2ème Voie</th>
+                                <th>Total Points 3ème Voie</th>
+                                <th style="background-color:#fef2f2; color:#b91c1c;">Points pénalités</th>
+                                <th style="background-color:#0369a1; color:#ffffff;">Nombre total de points sur la séance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="font-size:1.1rem; font-weight:800;">
+                                <td id="summaryRoute1Total">0</td>
+                                <td id="summaryRoute2Total">0</td>
+                                <td id="summaryRoute3Total">0</td>
+                                <td id="summaryPenaltyPoints" style="color:#dc2626; background-color:#fef2f2;">0</td>
+                                <td id="summarySessionTotal" style="color:#0c4a6e; background-color:#e0f2fe; font-size:1.25rem;">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ÉTAPE 6 : TABLEAU DES RÉSULTATS FINAUX & ENVOI PAR MAIL -->
+        <section class="card">
+            <div class="card-header" style="background: linear-gradient(90deg, #0c4a6e 0%, #0f172a 100%);">
+                <div class="card-header-title">
+                    <span class="step-badge green">RÉSULTATS FINAUX</span>
+                    <h2>Tableau récapitulatif de la séance</h2>
+                </div>
+                <span id="completionStatusBadge" class="status-badge">Saisie partielle (envoi possible)</span>
+            </div>
+
+            <div class="card-body">
+                <div class="table-wrapper">
+                    <table id="finalResultsTable">
+                        <thead class="dark">
+                            <tr>
+                                <th rowspan="2" class="text-left sticky-col" style="background-color:#1e293b; min-width:120px;">Grimpeur</th>
+                                <th colspan="2" id="finalHeaderV1" style="background-color:#075985;">Voie 1 : Non choisie</th>
+                                <th colspan="2" id="finalHeaderV2" style="background-color:#0369a1;">Voie 2 : Non choisie</th>
+                                <th colspan="2" id="finalHeaderV3" style="background-color:#075985;">Voie 3 : Non choisie</th>
+                                <th rowspan="2" style="background-color:#7f1d1d; min-width:100px;">Points pénalités</th>
+                                <th rowspan="2" style="background-color:#065f46; min-width:130px;">Nombre total de points sur la séance</th>
+                            </tr>
+                            <tr class="sub-header">
+                                <th style="min-width:110px;">Hauteur Atteinte</th>
+                                <th style="min-width:95px;">Points (1ère Voie)</th>
+                                <th style="min-width:110px;">Hauteur Atteinte</th>
+                                <th style="min-width:95px;">Points (2ème Voie)</th>
+                                <th style="min-width:110px;">Hauteur Atteinte</th>
+                                <th style="min-width:95px;">Points (3ème Voie)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finalResultsBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Information discrète sur les champs non renseignés -->
+                <div id="incompleteNotice" class="notice-box">
+                    <span style="font-size:1.1rem; line-height:1;">??</span>
+                    <div>
+                        <strong>Saisie partielle — l'envoi par mail reste actif à tout moment :</strong>
+                        <p id="missingFieldsText" style="margin-top:2px;">Les champs non remplis apparaîtront comme « Non renseigné » (0 pt) dans le mail.</p>
+                    </div>
+                </div>
+
+                <!-- Panneau d'envoi toujours visible et cliquable -->
+                <div id="sendBannerCard" class="send-panel">
+                    <div>
+                        <p id="sendBannerTitle" style="font-weight:800; font-size:0.98rem;">Envoyer les résultats par mail</p>
+                        <p style="font-size:0.82rem; color:var(--text-muted);">Destinataire : <strong>romain.griot@gmail.com</strong></p>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" id="copyDirectBtn" class="btn btn-secondary">
+                            ?? Copier le récapitulatif
+                        </button>
+                        <button type="button" id="sendEmailBtn" class="btn btn-primary">
+                            ?? Envoyer les résultats
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="reset-footer">
+            <button type="button" id="resetAppBtn" class="btn-reset-link">
+                Réinitialiser toute la fiche de séance
+            </button>
+        </div>
+
+    </main>
+
+    <!-- =========================================================================
+         MODALE D'ENVOI PAR MAIL (COMPATIBLE CLIENT LOURD, GMAIL WEB & COPIE)
+         ========================================================================= -->
+    <div id="emailModal" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>?? Envoyer les résultats à romain.griot@gmail.com</h3>
+                <button type="button" id="closeEmailModalBtn" class="modal-close" aria-label="Fermer">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.86rem; color:var(--text-muted);">
+                    Choisissez votre méthode d'envoi préférée ci-dessous. Si aucun logiciel de messagerie n'est installé sur cet appareil, utilisez <strong>Ouvrir dans Gmail (Web)</strong> ou <strong>Copier le récapitulatif</strong>.
+                </p>
+
+                <div class="modal-actions-grid">
+                    <a id="mailtoAnchorBtn" href="#" target="_top" class="btn btn-blue">
+                        ?? Ouvrir dans mon client mail
+                    </a>
+                    <a id="gmailAnchorBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-gmail">
+                        ?? Ouvrir dans Gmail (Web)
+                    </a>
+                    <button type="button" id="modalCopyBtn" class="btn btn-secondary">
+                        ?? <span id="modalCopyBtnText">Copier le récapitulatif</span>
+                    </button>
+                </div>
+
+                <div>
+                    <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">
+                        Aperçu du contenu du mail :
+                    </div>
+                    <pre id="modalEmailPreview" class="email-preview-pre"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODALE DE CONFIRMATION DE RÉINITIALISATION
+         ========================================================================= -->
+    <div id="confirmModal" class="modal-backdrop hidden">
+        <div class="modal-card small">
+            <div class="modal-header">
+                <h3>Réinitialiser la séance ?</h3>
+                <button type="button" id="closeConfirmModalBtn" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.88rem; color:var(--text-muted);">
+                    Toutes les données saisies (prénoms, voies, hauteurs et fautes) seront effacées.
+                </p>
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:6px;">
+                    <button type="button" id="cancelResetBtn" class="btn btn-secondary">Annuler</button>
+                    <button type="button" id="confirmResetBtn" class="btn btn-danger">Oui, effacer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toastNotification" class="toast hidden-toast">
+        <span id="toastMessage">Action effectuée</span>
+    </div>
+
+    <script>
+        /* =========================================================================
+           1. DONNÉES DU BARÈME OFFICIEL DES 13 VOIES D'ESCALADE
+           ========================================================================= */
+        const HEIGHT_LEVELS = [
+            "1er Spitz",
+            "2ème Spitz",
+            "3ème Spitz",
+            "4ème Spitz",
+            "TOP"
+        ];
+
+        const ROUTES_SCALE = {
+            1:  { "1er Spitz": 3, "2ème Spitz": 3.5, "3ème Spitz": 4,   "4ème Spitz": 4.5, "TOP": 5 },
+            2:  { "1er Spitz": 3, "2ème Spitz": 4,   "3ème Spitz": 5,   "4ème Spitz": 6,   "TOP": 7 },
+            3:  { "1er Spitz": 3, "2ème Spitz": 3.5, "3ème Spitz": 4,   "4ème Spitz": 4.5, "TOP": 5 },
+            4:  { "1er Spitz": 3, "2ème Spitz": 4,   "3ème Spitz": 5,   "4ème Spitz": 6,   "TOP": 7 },
+            5:  { "1er Spitz": 3, "2ème Spitz": 4,   "3ème Spitz": 5,   "4ème Spitz": 6,   "TOP": 7 },
+            6:  { "1er Spitz": 3, "2ème Spitz": 3.5, "3ème Spitz": 4,   "4ème Spitz": 4.5, "TOP": 5 },
+            7:  { "1er Spitz": 4, "2ème Spitz": 5,   "3ème Spitz": 6,   "4ème Spitz": 7,   "TOP": 8 },
+            8:  { "1er Spitz": 3, "2ème Spitz": 3.5, "3ème Spitz": 4,   "4ème Spitz": 4.5, "TOP": 5 },
+            9:  { "1er Spitz": 4, "2ème Spitz": 5,   "3ème Spitz": 6,   "4ème Spitz": 7,   "TOP": 8 },
+            10: { "1er Spitz": 3, "2ème Spitz": 5,   "3ème Spitz": 6.5, "4ème Spitz": 8,   "TOP": 10 },
+            11: { "1er Spitz": 3, "2ème Spitz": 5,   "3ème Spitz": 6.5, "4ème Spitz": 8,   "TOP": 10 },
+            12: { "1er Spitz": 4, "2ème Spitz": 5,   "3ème Spitz": 6,   "4ème Spitz": 7,   "TOP": 9 },
+            13: { "1er Spitz": 4, "2ème Spitz": 5,   "3ème Spitz": 6,   "4ème Spitz": 7,   "TOP": 9 }
+        };
+
+        const ROUTE_META = [
+            { index: 0, step: 2, title: "1ère Voie" },
+            { index: 1, step: 3, title: "2ème Voie" },
+            { index: 2, step: 4, title: "3ème Voie" }
+        ];
+
+        /* =========================================================================
+           2. ÉTAT GLOBAL DE L'APPLICATION
+           ========================================================================= */
+        let appState = {
+            groupSize: 3,
+            climbers: ["", "", "", ""],
+            routes: [
+                { selectedRoute: "", heights: ["", "", "", ""], allTopBonus: "NON" },
+                { selectedRoute: "", heights: ["", "", "", ""], allTopBonus: "NON" },
+                { selectedRoute: "", heights: ["", "", "", ""], allTopBonus: "NON" }
+            ],
+            safetyFaults: 0
+        };
+
+        /* =========================================================================
+           3. FONCTIONS UTILITAIRES & CALCULS
+           ========================================================================= */
+        function escapeHtml(str) {
+            const div = document.createElement("div");
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        function formatPoints(num) {
+            if (num === null || num === undefined || isNaN(num)) return "0";
+            return Number.isInteger(num) ? String(num) : String(num).replace(".", ",");
+        }
+
+        function getClimberDisplayName(index) {
+            const raw = (appState.climbers[index] || "").trim();
+            return raw ? raw : `Grimpeur ${index + 1}`;
+        }
+
+        function getRouteDisplayLabel(routeNumber) {
+            return routeNumber ? `Voie ${routeNumber}` : "Non choisie";
+        }
+
+        function getClimberRoutePoints(routeIdx, climberIdx) {
+            const routeObj = appState.routes[routeIdx];
+            const height = routeObj.heights[climberIdx];
+            if (!routeObj.selectedRoute || !height || !ROUTES_SCALE[routeObj.selectedRoute]) {
+                return 0;
+            }
+            return ROUTES_SCALE[routeObj.selectedRoute][height] || 0;
+        }
+
+        function getRouteClimbersSum(routeIdx) {
+            let sum = 0;
+            for (let c = 0; c < appState.groupSize; c++) {
+                sum += getClimberRoutePoints(routeIdx, c);
+            }
+            return sum;
+        }
+
+        function getRouteTotalPoints(routeIdx) {
+            const baseSum = getRouteClimbersSum(routeIdx);
+            return appState.routes[routeIdx].allTopBonus === "OUI" ? baseSum + 10 : baseSum;
+        }
+
+        let toastTimer = null;
+        function showToast(message) {
+            const toast = document.getElementById("toastNotification");
+            const toastMsg = document.getElementById("toastMessage");
+            toastMsg.textContent = message;
+            toast.classList.remove("hidden-toast");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add("hidden-toast");
+            }, 3000);
+        }
+
+        /* =========================================================================
+           4. RENDU DU BARÈME OFFICIEL
+           ========================================================================= */
+        function renderBaremeTable() {
+            const tbody = document.getElementById("baremeTableBody");
+            tbody.innerHTML = HEIGHT_LEVELS.map(level => {
+                const isTop = level === "TOP";
+                const cells = [];
+                for (let r = 1; r <= 13; r++) {
+                    cells.push(`<td>${formatPoints(ROUTES_SCALE[r][level])}</td>`);
+                }
+                return `
+                    <tr class="${isTop ? "top-row" : ""}">
+                        <td class="text-left sticky-col" style="font-weight:700; background-color:${isTop ? "#1e293b" : "#0f172a"};">${escapeHtml(level)}</td>
+                        ${cells.join("")}
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        /* =========================================================================
+           5. RENDU DES 3 VOIES (ÉTAPES 2, 3 ET 4)
+           ========================================================================= */
+        function renderRoutesSections() {
+            const container = document.getElementById("routesContainer");
+
+            container.innerHTML = ROUTE_META.map(meta => {
+                const rIdx = meta.index;
+                const routeState = appState.routes[rIdx];
+
+                const routeOptions = [
+                    `<option value="" ${routeState.selectedRoute === "" ? "selected" : ""}>-- Choisir une voie --</option>`
+                ];
+                for (let n = 1; n <= 13; n++) {
+                    routeOptions.push(`<option value="${n}" ${Number(routeState.selectedRoute) === n ? "selected" : ""}>Voie ${n}</option>`);
+                }
+
+                const rows = [];
+                for (let c = 0; c < appState.groupSize; c++) {
+                    const climberName = getClimberDisplayName(c);
+                    const currentHeight = routeState.heights[c];
+                    const pts = getClimberRoutePoints(rIdx, c);
+                    const hasScore = Boolean(routeState.selectedRoute && currentHeight);
+
+                    const heightOptions = [
+                        `<option value="" ${currentHeight === "" ? "selected" : ""}>-- Non renseigné --</option>`,
+                        ...HEIGHT_LEVELS.map(h => `<option value="${h}" ${currentHeight === h ? "selected" : ""}>${h}</option>`)
+                    ].join("");
+
+                    rows.push(`
+                        <tr>
+                            <td class="text-left climber-name-cell-${c}" style="font-weight:700;">${escapeHtml(climberName)}</td>
+                            <td>
+                                <select data-route="${rIdx}" data-climber="${c}" class="height-select ${currentHeight ? "filled" : ""}">
+                                    ${heightOptions}
+                                </select>
+                            </td>
+                            <td id="route-${rIdx}-climber-${c}-pts" style="font-weight:800; color:var(--primary-dark); font-size:0.98rem;">
+                                ${hasScore ? `${formatPoints(pts)} pt${pts > 1 ? "s" : ""}` : "0 pt"}
+                            </td>
+                            ${c === 0 ? `
+                                <td rowspan="${appState.groupSize}" id="route-${rIdx}-total-cell" class="total-merged-cell">
+                                    ${renderRouteTotalCellHtml(rIdx)}
+                                </td>
+                            ` : ""}
+                        </tr>
+                    `);
+                }
+
+                return `
+                    <section class="card" id="section-route-${rIdx}">
+                        <div class="card-header">
+                            <div class="card-header-title">
+                                <span class="step-badge blue">ÉTAPE ${meta.step}</span>
+                                <h2>${meta.title}</h2>
+                            </div>
+                            <span class="card-header-right" id="badge-route-${rIdx}">${getRouteDisplayLabel(routeState.selectedRoute)}</span>
+                        </div>
+
+                        <div class="card-body">
+                            <!-- Choix de la voie -->
+                            <div class="control-box">
+                                <label for="routeSelect-${rIdx}" class="control-label">
+                                    ${meta.title} : Quelle voie a été choisie ?
+                                </label>
+                                <select id="routeSelect-${rIdx}" data-route="${rIdx}" class="route-number-select ${routeState.selectedRoute ? "filled" : ""}">
+                                    ${routeOptions.join("")}
+                                </select>
+                            </div>
+
+                            <!-- Tableau interactif de saisie et d'affichage avec TOTAL Voie fusionné -->
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left" style="width:26%;">Grimpeur</th>
+                                            <th style="width:30%;">Hauteur atteinte</th>
+                                            <th style="width:20%;">Points obtenus</th>
+                                            <th style="width:24%; background-color:#0369a1; color:#ffffff;">TOTAL ${meta.title}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rows.join("")}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Question Bonus TOP collectif -->
+                            <div class="control-box green-tint">
+                                <div>
+                                    <label for="allTopSelect-${rIdx}" class="control-label">
+                                        Est-ce que tous les grimpeurs sont arrivés au TOP ?
+                                    </label>
+                                    <p class="control-sublabel">Si <strong>OUI</strong> : somme des points obtenus + <strong>10 points</strong> de bonus.</p>
+                                </div>
+                                <select id="allTopSelect-${rIdx}" data-route="${rIdx}" class="all-top-select ${routeState.allTopBonus === "OUI" ? "filled" : ""}">
+                                    <option value="NON" ${routeState.allTopBonus === "NON" ? "selected" : ""}>NON</option>
+                                    <option value="OUI" ${routeState.allTopBonus === "OUI" ? "selected" : ""}>OUI (+10 pts)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }).join("");
+
+            attachRouteEventListeners();
+        }
+
+        function renderRouteTotalCellHtml(rIdx) {
+            const baseSum = getRouteClimbersSum(rIdx);
+            const totalPts = getRouteTotalPoints(rIdx);
+            const isBonus = appState.routes[rIdx].allTopBonus === "OUI";
+
+            if (isBonus) {
+                return `
+                    <div class="total-big-num">${formatPoints(totalPts)} pts</div>
+                    <div class="bonus-pill">${formatPoints(baseSum)} pts + 10 pts bonus TOP</div>
+                `;
+            }
+            return `
+                <div class="total-big-num">${formatPoints(totalPts)} pt${totalPts > 1 ? "s" : ""}</div>
+                <div style="font-size:0.74rem; color:var(--text-muted); margin-top:2px;">Somme des points</div>
+            `;
+        }
+
+        /* =========================================================================
+           6. MISE À JOUR EN TEMPS RÉEL DES CALCULS & TABLEAUX
+           ========================================================================= */
+        function updateAllCalculations() {
+            // 1. Mise à jour des cellules de chacune des 3 voies
+            for (let r = 0; r < 3; r++) {
+                const routeObj = appState.routes[r];
+                const badgeEl = document.getElementById(`badge-route-${r}`);
+                if (badgeEl) {
+                    badgeEl.textContent = getRouteDisplayLabel(routeObj.selectedRoute);
+                }
+
+                for (let c = 0; c < appState.groupSize; c++) {
+                    const pts = getClimberRoutePoints(r, c);
+                    const hasScore = Boolean(routeObj.selectedRoute && routeObj.heights[c]);
+                    const ptsCell = document.getElementById(`route-${r}-climber-${c}-pts`);
+                    if (ptsCell) {
+                        ptsCell.textContent = hasScore ? `${formatPoints(pts)} pt${pts > 1 ? "s" : ""}` : "0 pt";
+                    }
+                }
+
+                const totalCell = document.getElementById(`route-${r}-total-cell`);
+                if (totalCell) {
+                    totalCell.innerHTML = renderRouteTotalCellHtml(r);
+                }
+            }
+
+            // 2. Mise à jour du tableau de synthèse (Étape 5)
+            const t1 = getRouteTotalPoints(0);
+            const t2 = getRouteTotalPoints(1);
+            const t3 = getRouteTotalPoints(2);
+            const penalties = appState.safetyFaults * 3;
+            const sessionTotal = (t1 + t2 + t3) - penalties;
+
+            document.getElementById("summaryRoute1Total").textContent = `${formatPoints(t1)} pt${t1 > 1 ? "s" : ""}`;
+            document.getElementById("summaryRoute2Total").textContent = `${formatPoints(t2)} pt${t2 > 1 ? "s" : ""}`;
+            document.getElementById("summaryRoute3Total").textContent = `${formatPoints(t3)} pt${t3 > 1 ? "s" : ""}`;
+            document.getElementById("summaryPenaltyPoints").textContent = penalties > 0 ? `-${formatPoints(penalties)} pts` : "0 pt";
+            document.getElementById("summarySessionTotal").textContent = `${formatPoints(sessionTotal)} pt${Math.abs(sessionTotal) > 1 ? "s" : ""}`;
+            document.getElementById("headerTotalScore").textContent = `${formatPoints(sessionTotal)} pt${Math.abs(sessionTotal) > 1 ? "s" : ""}`;
+
+            // 3. Mise à jour du tableau récapitulatif final (Étape 6)
+            renderFinalTable(t1, t2, t3, penalties, sessionTotal);
+
+            // 4. Mise à jour de l'indicateur de complétude (sans jamais bloquer l'envoi)
+            updateCompletionIndicator();
+        }
+
+        function renderFinalTable(t1, t2, t3, penalties, sessionTotal) {
+            document.getElementById("finalHeaderV1").textContent = `Voie 1 : ${getRouteDisplayLabel(appState.routes[0].selectedRoute)}`;
+            document.getElementById("finalHeaderV2").textContent = `Voie 2 : ${getRouteDisplayLabel(appState.routes[1].selectedRoute)}`;
+            document.getElementById("finalHeaderV3").textContent = `Voie 3 : ${getRouteDisplayLabel(appState.routes[2].selectedRoute)}`;
+
+            const tbody = document.getElementById("finalResultsBody");
+            const totalRowsSpan = appState.groupSize + 1;
+            const rowsHtml = [];
+
+            for (let c = 0; c < appState.groupSize; c++) {
+                const name = getClimberDisplayName(c);
+
+                const h1 = appState.routes[0].heights[c] || "Non renseigné";
+                const p1 = (appState.routes[0].selectedRoute && appState.routes[0].heights[c])
+                    ? `${formatPoints(getClimberRoutePoints(0, c))} pt${getClimberRoutePoints(0, c) > 1 ? "s" : ""}`
+                    : "0 pt";
+
+                const h2 = appState.routes[1].heights[c] || "Non renseigné";
+                const p2 = (appState.routes[1].selectedRoute && appState.routes[1].heights[c])
+                    ? `${formatPoints(getClimberRoutePoints(1, c))} pt${getClimberRoutePoints(1, c) > 1 ? "s" : ""}`
+                    : "0 pt";
+
+                const h3 = appState.routes[2].heights[c] || "Non renseigné";
+                const p3 = (appState.routes[2].selectedRoute && appState.routes[2].heights[c])
+                    ? `${formatPoints(getClimberRoutePoints(2, c))} pt${getClimberRoutePoints(2, c) > 1 ? "s" : ""}`
+                    : "0 pt";
+
+                rowsHtml.push(`
+                    <tr>
+                        <td class="text-left sticky-col" style="font-weight:700; background-color:#ffffff;">${escapeHtml(name)}</td>
+                        <td style="color:${appState.routes[0].heights[c] ? "#0f172a" : "#94a3b8"};">${escapeHtml(h1)}</td>
+                        <td style="font-weight:700;">${p1}</td>
+                        <td style="color:${appState.routes[1].heights[c] ? "#0f172a" : "#94a3b8"};">${escapeHtml(h2)}</td>
+                        <td style="font-weight:700;">${p2}</td>
+                        <td style="color:${appState.routes[2].heights[c] ? "#0f172a" : "#94a3b8"};">${escapeHtml(h3)}</td>
+                        <td style="font-weight:700;">${p3}</td>
+                        ${c === 0 ? `
+                            <td rowspan="${totalRowsSpan}" style="background-color:#fef2f2; color:#b91c1c; font-weight:800; font-size:1rem; vertical-align:middle;">
+                                ${penalties > 0 ? `-${formatPoints(penalties)} pts` : "0 pt"}
+                                <div style="font-size:0.72rem; font-weight:600; color:#dc2626; margin-top:2px;">(${appState.safetyFaults} faute${appState.safetyFaults > 1 ? "s" : ""})</div>
+                            </td>
+                            <td rowspan="${totalRowsSpan}" style="background-color:#ecfdf5; color:#065f46; font-weight:800; font-size:1.25rem; vertical-align:middle;">
+                                ${formatPoints(sessionTotal)} pt${Math.abs(sessionTotal) > 1 ? "s" : ""}
+                            </td>
+                        ` : ""}
+                    </tr>
+                `);
+            }
+
+            // Ligne finale "Total Voie"
+            rowsHtml.push(`
+                <tr style="background-color:#f1f5f9; font-weight:800; border-top:2px solid #94a3b8;">
+                    <td class="text-left sticky-col" style="background-color:#f1f5f9;">Total Voie</td>
+                    <td colspan="2" style="color:#0c4a6e; font-size:0.98rem;">
+                        ${formatPoints(t1)} pt${t1 > 1 ? "s" : ""}
+                        ${appState.routes[0].allTopBonus === "OUI" ? '<div style="font-size:0.7rem; color:#059669;">(dont +10 bonus TOP)</div>' : ""}
+                    </td>
+                    <td colspan="2" style="color:#0c4a6e; font-size:0.98rem;">
+                        ${formatPoints(t2)} pt${t2 > 1 ? "s" : ""}
+                        ${appState.routes[1].allTopBonus === "OUI" ? '<div style="font-size:0.7rem; color:#059669;">(dont +10 bonus TOP)</div>' : ""}
+                    </td>
+                    <td colspan="2" style="color:#0c4a6e; font-size:0.98rem;">
+                        ${formatPoints(t3)} pt${t3 > 1 ? "s" : ""}
+                        ${appState.routes[2].allTopBonus === "OUI" ? '<div style="font-size:0.7rem; color:#059669;">(dont +10 bonus TOP)</div>' : ""}
+                    </td>
+                </tr>
+            `);
+
+            tbody.innerHTML = rowsHtml.join("");
+        }
+
+        function updateCompletionIndicator() {
+            const missingParts = [];
+
+            let missingNames = 0;
+            for (let c = 0; c < appState.groupSize; c++) {
+                if (!appState.climbers[c].trim()) missingNames++;
+            }
+            if (missingNames > 0) missingParts.push(`${missingNames} prénom${missingNames > 1 ? "s" : ""}`);
+
+            let missingRoutes = 0;
+            for (let r = 0; r < 3; r++) {
+                if (!appState.routes[r].selectedRoute) missingRoutes++;
+            }
+            if (missingRoutes > 0) missingParts.push(`${missingRoutes} voie${missingRoutes > 1 ? "s" : ""} non choisie${missingRoutes > 1 ? "s" : ""}`);
+
+            let missingHeights = 0;
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < appState.groupSize; c++) {
+                    if (!appState.routes[r].heights[c]) missingHeights++;
+                }
+            }
+            if (missingHeights > 0) missingParts.push(`${missingHeights} hauteur${missingHeights > 1 ? "s" : ""}`);
+
+            const badge = document.getElementById("completionStatusBadge");
+            const notice = document.getElementById("incompleteNotice");
+            const missingText = document.getElementById("missingFieldsText");
+            const sendBanner = document.getElementById("sendBannerCard");
+
+            if (missingParts.length === 0) {
+                badge.textContent = "Saisie complète";
+                badge.classList.add("complete");
+                notice.classList.add("hidden");
+                sendBanner.classList.add("ready-complete");
+            } else {
+                badge.textContent = "Saisie partielle (envoi possible)";
+                badge.classList.remove("complete");
+                notice.classList.remove("hidden");
+                sendBanner.classList.remove("ready-complete");
+                missingText.textContent = `Éléments manquants (${missingParts.join(", ")}) : ils seront mentionnés comme « Non renseigné » (0 pt) dans le mail.`;
+            }
+        }
+
+        /* =========================================================================
+           7. FORMATAGE DU MAIL, COPIE & OUVERTURE MODALE D'ENVOI
+           ========================================================================= */
+        function buildFormattedEmailData() {
+            const t1 = getRouteTotalPoints(0);
+            const t2 = getRouteTotalPoints(1);
+            const t3 = getRouteTotalPoints(2);
+            const penalties = appState.safetyFaults * 3;
+            const sessionTotal = (t1 + t2 + t3) - penalties;
+
+            const v1Label = getRouteDisplayLabel(appState.routes[0].selectedRoute);
+            const v2Label = getRouteDisplayLabel(appState.routes[1].selectedRoute);
+            const v3Label = getRouteDisplayLabel(appState.routes[2].selectedRoute);
+
+            const names = [];
+            for (let c = 0; c < appState.groupSize; c++) {
+                names.push(getClimberDisplayName(c));
+            }
+
+            const lines = [
+                "RÉSULTATS DE LA SÉANCE D'ESCALADE",
+                "==================================================",
+                `Groupe (${appState.groupSize} personnes) : ${names.join(", ")}`,
+                "",
+                "DÉTAIL PAR GRIMPEUR :",
+                "--------------------------------------------------"
+            ];
+
+            for (let c = 0; c < appState.groupSize; c++) {
+                const name = getClimberDisplayName(c);
+
+                const h1 = appState.routes[0].heights[c] || "Non renseigné";
+                const p1 = (appState.routes[0].selectedRoute && appState.routes[0].heights[c])
+                    ? `${formatPoints(getClimberRoutePoints(0, c))} pts`
+                    : "0 pt";
+
+                const h2 = appState.routes[1].heights[c] || "Non renseigné";
+                const p2 = (appState.routes[1].selectedRoute && appState.routes[1].heights[c])
+                    ? `${formatPoints(getClimberRoutePoints(1, c))} pts`
+                    : "0 pt";
+
+                const h3 = appState.routes[2].heights[c] || "Non renseigné";
+                const p3 = (appState.routes[2].selectedRoute && appState.routes[2].heights[c])
+                    ? `${formatPoints(getClimberRoutePoints(2, c))} pts`
+                    : "0 pt";
+
+                lines.push(`• ${name} :`);
+                lines.push(`   - 1ère Voie (${v1Label}) : ${h1} -> ${p1}`);
+                lines.push(`   - 2ème Voie (${v2Label}) : ${h2} -> ${p2}`);
+                lines.push(`   - 3ème Voie (${v3Label}) : ${h3} -> ${p3}`);
+            }
+
+            lines.push("");
+            lines.push("TOTAUX PAR VOIE :");
+            lines.push("--------------------------------------------------");
+            lines.push(`• Total 1ère Voie (${v1Label}) : ${formatPoints(t1)} pts (Tous au TOP : ${appState.routes[0].allTopBonus})`);
+            lines.push(`• Total 2ème Voie (${v2Label}) : ${formatPoints(t2)} pts (Tous au TOP : ${appState.routes[1].allTopBonus})`);
+            lines.push(`• Total 3ème Voie (${v3Label}) : ${formatPoints(t3)} pts (Tous au TOP : ${appState.routes[2].allTopBonus})`);
+            lines.push("");
+            lines.push("BILAN SÉCURITÉ & SCORE FINAL :");
+            lines.push("==================================================");
+            lines.push(`• Fautes sécurité : ${appState.safetyFaults} (Points pénalités : -${formatPoints(penalties)} pts)`);
+            lines.push(`• NOMBRE TOTAL DE POINTS SUR LA SÉANCE : ${formatPoints(sessionTotal)} pts`);
+            lines.push("==================================================");
+
+            const subject = `Résultats Séance Escalade - Groupe (${names.join(", ")})`;
+            const body = lines.join("\n");
+
+            return {
+                recipient: "romain.griot@gmail.com",
+                subject,
+                body,
+                mailtoHref: `mailto:romain.griot@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+                gmailHref: `https://mail.google.com/mail/?view=cm&fs=1&to=romain.griot@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+            };
+        }
+
+        function copyTextToClipboard(text, buttonLabelEl) {
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+
+            let success = false;
+            try {
+                success = document.execCommand("copy");
+            } catch (err) {
+                success = false;
+            }
+            document.body.removeChild(textarea);
+
+            if (success) {
+                showToast("Récapitulatif copié dans le presse-papier !");
+                if (buttonLabelEl) {
+                    const originalText = buttonLabelEl.textContent;
+                    buttonLabelEl.textContent = "Copié !";
+                    setTimeout(() => {
+                        buttonLabelEl.textContent = originalText;
+                    }, 2200);
+                }
+            } else {
+                showToast("Sélectionnez et copiez le texte affiché ci-dessous.");
+            }
+        }
+
+        function openEmailModalAndTriggerMailto() {
+            const emailData = buildFormattedEmailData();
+
+            document.getElementById("mailtoAnchorBtn").setAttribute("href", emailData.mailtoHref);
+            document.getElementById("gmailAnchorBtn").setAttribute("href", emailData.gmailHref);
+            document.getElementById("modalEmailPreview").textContent = emailData.body;
+            document.getElementById("emailModal").classList.remove("hidden");
+
+            // Tentative d'ouverture automatique du client mail via un lien dynamique sans bloquer l'iframe
+            try {
+                const tempLink = document.createElement("a");
+                tempLink.href = emailData.mailtoHref;
+                tempLink.target = "_top";
+                tempLink.style.display = "none";
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+            } catch (e) {
+                // La modale ouverte permet dans tous les cas un clic direct ou l'envoi via Gmail Web
+            }
+        }
+
+        /* =========================================================================
+           8. ÉCOUTEURS D'ÉVÉNEMENTS
+           ========================================================================= */
+        function attachRouteEventListeners() {
+            // Sélection du numéro de voie (Voie 1 à Voie 13)
+            document.querySelectorAll(".route-number-select").forEach(select => {
+                select.addEventListener("change", (e) => {
+                    const rIdx = parseInt(e.target.dataset.route, 10);
+                    const val = e.target.value;
+                    appState.routes[rIdx].selectedRoute = val ? parseInt(val, 10) : "";
+                    e.target.classList.toggle("filled", Boolean(val));
+                    updateAllCalculations();
+                });
+            });
+
+            // Sélection de la hauteur atteinte par grimpeur
+            document.querySelectorAll(".height-select").forEach(select => {
+                select.addEventListener("change", (e) => {
+                    const rIdx = parseInt(e.target.dataset.route, 10);
+                    const cIdx = parseInt(e.target.dataset.climber, 10);
+                    const val = e.target.value;
+                    appState.routes[rIdx].heights[cIdx] = val;
+                    e.target.classList.toggle("filled", Boolean(val));
+
+                    // Vérification automatique : si tous les grimpeurs du groupe sont au TOP
+                    let allAreTop = true;
+                    for (let c = 0; c < appState.groupSize; c++) {
+                        if (appState.routes[rIdx].heights[c] !== "TOP") {
+                            allAreTop = false;
+                            break;
+                        }
+                    }
+
+                    const bonusSelect = document.getElementById(`allTopSelect-${rIdx}`);
+                    if (allAreTop && appState.routes[rIdx].allTopBonus !== "OUI") {
+                        appState.routes[rIdx].allTopBonus = "OUI";
+                        if (bonusSelect) {
+                            bonusSelect.value = "OUI";
+                            bonusSelect.classList.add("filled");
+                        }
+                        showToast(`Bonus +10 pts activé (tous au TOP sur la ${ROUTE_META[rIdx].title}) !`);
+                    } else if (!allAreTop && appState.routes[rIdx].allTopBonus === "OUI") {
+                        appState.routes[rIdx].allTopBonus = "NON";
+                        if (bonusSelect) {
+                            bonusSelect.value = "NON";
+                            bonusSelect.classList.remove("filled");
+                        }
+                    }
+
+                    updateAllCalculations();
+                });
+            });
+
+            // Sélection manuelle "Est-ce que tous les grimpeurs sont arrivés au TOP ? OUI/NON"
+            document.querySelectorAll(".all-top-select").forEach(select => {
+                select.addEventListener("change", (e) => {
+                    const rIdx = parseInt(e.target.dataset.route, 10);
+                    appState.routes[rIdx].allTopBonus = e.target.value;
+                    e.target.classList.toggle("filled", e.target.value === "OUI");
+                    updateAllCalculations();
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderBaremeTable();
+            renderRoutesSections();
+            updateAllCalculations();
+
+            // Accordéon Barème
+            const baremeDrawer = document.getElementById("baremeDrawer");
+            const baremeArrow = document.getElementById("baremeArrow");
+            function toggleBareme() {
+                const isHidden = baremeDrawer.classList.toggle("hidden");
+                baremeArrow.textContent = isHidden ? "?" : "?";
+            }
+            document.getElementById("toggleBaremeBtn").addEventListener("click", toggleBareme);
+            document.getElementById("closeBaremeBtn").addEventListener("click", toggleBareme);
+
+            // Nombre de personnes dans le groupe (3 ou 4)
+            const groupSizeSelect = document.getElementById("groupSizeSelect");
+            const climber4Wrapper = document.getElementById("climber4Wrapper");
+            groupSizeSelect.addEventListener("change", (e) => {
+                appState.groupSize = parseInt(e.target.value, 10);
+                climber4Wrapper.classList.toggle("hidden", appState.groupSize !== 4);
+                renderRoutesSections();
+                updateAllCalculations();
+            });
+
+            // Saisie des prénoms sans jamais reconstruire les champs input (conserve le focus)
+            for (let i = 0; i < 4; i++) {
+                const inputEl = document.getElementById(`climberName${i}`);
+                inputEl.addEventListener("input", (e) => {
+                    appState.climbers[i] = e.target.value;
+                    const displayName = getClimberDisplayName(i);
+                    document.querySelectorAll(`.climber-name-cell-${i}`).forEach(cell => {
+                        cell.textContent = displayName;
+                    });
+                    updateAllCalculations();
+                });
+            }
+
+            // Nombre de fautes sécurité (0 à 7)
+            document.getElementById("safetyFaultsSelect").addEventListener("change", (e) => {
+                appState.safetyFaults = parseInt(e.target.value, 10);
+                updateAllCalculations();
+            });
+
+            // Bouton principal "Envoyer les résultats"
+            document.getElementById("sendEmailBtn").addEventListener("click", openEmailModalAndTriggerMailto);
+
+            // Bouton "Copier le récapitulatif" direct
+            document.getElementById("copyDirectBtn").addEventListener("click", () => {
+                const data = buildFormattedEmailData();
+                copyTextToClipboard(data.body, null);
+            });
+
+            // Fermeture & actions dans la modale d'envoi par mail
+            const emailModal = document.getElementById("emailModal");
+            document.getElementById("closeEmailModalBtn").addEventListener("click", () => {
+                emailModal.classList.add("hidden");
+            });
+            emailModal.addEventListener("click", (e) => {
+                if (e.target === emailModal) emailModal.classList.add("hidden");
+            });
+            document.getElementById("modalCopyBtn").addEventListener("click", () => {
+                const data = buildFormattedEmailData();
+                copyTextToClipboard(data.body, document.getElementById("modalCopyBtnText"));
+            });
+
+            // Modale de réinitialisation
+            const confirmModal = document.getElementById("confirmModal");
+            document.getElementById("resetAppBtn").addEventListener("click", () => {
+                confirmModal.classList.remove("hidden");
+            });
+            document.getElementById("closeConfirmModalBtn").addEventListener("click", () => {
+                confirmModal.classList.add("hidden");
+            });
+            document.getElementById("cancelResetBtn").addEventListener("click", () => {
+                confirmModal.classList.add("hidden");
+            });
+            confirmModal.addEventListener("click", (e) => {
+                if (e.target === confirmModal) confirmModal.classList.add("hidden");
+            });
+
+            document.getElementById("confirmResetBtn").addEventListener("click", () => {
+                appState = {
+                    groupSize: 3,
+                    climbers: ["", "", "", ""],
+                    routes: [
+                        { selectedRoute: "", heights: ["", "", "", ""], allTopBonus: "NON" },
+                        { selectedRoute: "", heights: ["", "", "", ""], allTopBonus: "NON" },
+                        { selectedRoute: "", heights: ["", "", "", ""], allTopBonus: "NON" }
+                    ],
+                    safetyFaults: 0
+                };
+                groupSizeSelect.value = "3";
+                climber4Wrapper.classList.add("hidden");
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(`climberName${i}`).value = "";
+                }
+                document.getElementById("safetyFaultsSelect").value = "0";
+                renderRoutesSections();
+                updateAllCalculations();
+                confirmModal.classList.add("hidden");
+                showToast("Fiche de séance réinitialisée.");
+            });
+        });
+    </script>
+</body>
+</html>
